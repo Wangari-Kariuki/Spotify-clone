@@ -16,6 +16,9 @@ Replace this paragraph with your own summary of what your version does.
 ---
 
 ## How The System Works
+According to cht these sytems user collaborative filtering(find similar users and recomend what they liked)  combined with content based filtering(recomending songs absed on what you've liked )
+Audio features considered:Tempo, energy, valence , acousticness, dancabilty etc, meta data features, artists, genere release date popularity etc
+machinelearning techniques used: Matrix factoriation, neural networks(fot turing complex nonlinear relationships), embeddings, recurrent neural networks (capture sequential patterns )
 
 Explain your design in plain language.
 
@@ -30,6 +33,71 @@ Some prompts to answer:
 You can include a simple diagram or bullet list if helpful.
 
 ---
+
+I think musicl preference is defined by genre and mood. If I like certain gnre I would prefer to listen to it more and if I am in a certain mood I would prefer to listen to music  that suites that. 
+
+copilot suggested that the most useful features to create a recommendationsytesm off of are Genre, mood, energy danceability and accousticness.
+
+Mapping the logic
+(a) if dancebility is  > 0.6 = high energy song
+(b) if danceability is <  0.6  low energy song
+
+
+copilot:
+(a) take songs numeric features and calculate their score as : 
+method 1: score = 1 - (|song_value - user_preference| / max_range)
+method 2: score = exp(-(distance²) / (2 × variance))
+(b)combines scores for  multiple features: 
+total_score = w₁ × score_energy + w₂ × score_danceability + w₃ × score_acousticness +...
+
+
+
+Algorithm recipe:
+Step1:Scoring rule - score the songs against the user
+input: one song + user profile
+output: score between 0.0 and 1.0(higher = better match)
+Scoring formula: FINAL_SCORE = (0.35 × genre_match) + (0.25 × mood_match) + (0.25 × energy_match) + (0.15 × acoustic_match)
+
+Genre Match (35% weight)
+If song.genre == user.favorite_genre → score = 1.0
+If song.genre is similar style (pop ≈ indie-pop) → score = 0.7
+Otherwise → score = 0.0
+Mood Match (25% weight)
+If song.mood == user.favorite_mood → score = 1.0
+If song.mood is adjacent (happy ≈ energetic) → score = 0.6
+Otherwise → score = 0.0
+Energy Match (25% weight)
+
+Step2 : Ranking rule
+input: all songs with their scores
+output: Top-k songs sorted by quality
+
+![Recommendation result](image.png)
+
+
+Recomendation logic: 
+Humans decide based on music theory and recommendation intuition.
+
+Rationale:
+
+Genre (35%): Most important—defines music type entirely
+Mood (25%): Second most—emotional match is key experience
+Energy (25%): Tightly tied to mood; sets activation level
+Acoustic (10%): Affects tone but less critical
+Valence (5%): Redundant with mood; lowest priority
+Pros: Intuitive, requires
+
+
+
+Note on biases:
+The algorithm will prioritize genre and mood ignoring features such as acoustic ness and danceability
+
+
+
+
+...
+
+
 
 ## Getting Started
 
