@@ -86,8 +86,8 @@ def score_song(user_prefs: Dict, song: Dict) -> float:
     # Mood match (25% weight)
     mood_score = _calculate_mood_match(user_prefs['mood'], song['mood'])
     
-    # Energy match (25% weight)
-    energy_score = _calculate_energy_match(user_prefs['energy'], song['energy'])
+    # Energy match (25% weight) - default to 0.5 (neutral) if not specified
+    energy_score = _calculate_energy_match(user_prefs.get('energy', 0.5), song['energy'])
     
     # Acoustic match (15% weight)
     acoustic_score = _calculate_acoustic_match(user_prefs.get('likes_acoustic', False), song['acousticness'])
@@ -237,7 +237,7 @@ def _explain_recommendation(user_prefs: Dict, song: Dict, score: float) -> str:
     if song['mood'] == user_prefs['mood']:
         matched_attributes.append('mood')
     
-    energy_dist = abs(song['energy'] - user_prefs['energy'])
+    energy_dist = abs(song['energy'] - user_prefs.get('energy',0.5))
     if energy_dist <= 0.1:
         matched_attributes.append('energy')
     
