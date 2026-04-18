@@ -2,16 +2,15 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
+This music recommender system provides personalized song recommendations based on user taste profiles. 
 
-Your goal is to:
+**Key Features:**
+- **Multi-user support**: Process recommendations for multiple users simultaneously
+- **Weighted scoring algorithm**: Combines genre (35%), mood (25%), energy (25%), and acoustic (15%) preferences
+- **Robust preference handling**: Gracefully handles missing or incomplete user preferences
+- **Edge case testing**: Includes adversarial user profiles to validate scoring logic reliability
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+The system evaluates songs against user preferences and returns ranked recommendations with scoring explanations.
 
 ---
 
@@ -92,10 +91,23 @@ Pros: Intuitive, requires
 Note on biases:
 The algorithm will prioritize genre and mood ignoring features such as acoustic ness and danceability
 
+---
 
+## Testing & Edge Cases
 
+To validate the scoring algorithm's robustness, the system includes **8 adversarial and edge case user profiles** designed to reveal potential issues:
 
-...
+| Test Profile | Edge Case | Purpose |
+|--------------|-----------|---------|
+| Contradictory Bob | High energy + chill mood | Tests handling of conflicting preference signals |
+| Neutral Nancy | All middle-ground values | Validates neutral preference ranking |
+| Maximalist Max / Minimalist Min | Boundary values (1.0 / 0.0) | Ensures scoring doesn't break at extremes |
+| Obscure Ollie | Niche/non-existent genre | Tests graceful handling of unknown genres |
+| Minimal Mike | Missing energy field | Validates robustness with incomplete data |
+| Mismatched Mary | Metal genre + relaxed mood | Tests feature dominance when preferences conflict |
+| Acoustic Alex | Extreme acoustic preference | Evaluates acoustic weighting impact |
+
+**Bug Fix:** The scoring function now handles missing `energy` preferences by defaulting to 0.5 (neutral), making the system more resilient to incomplete user profiles.
 
 
 
@@ -121,6 +133,12 @@ pip install -r requirements.txt
 ```bash
 python -m src.main
 ```
+
+This will generate recommendations for 12 users (including 4 standard profiles and 8 edge case profiles). Each user's recommendations are displayed with:
+- User preferences summary
+- Top 5 recommended songs
+- Match scores (0.0-1.0)
+- Explanation for each recommendation
 
 ### Running Tests
 

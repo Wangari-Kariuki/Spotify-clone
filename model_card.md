@@ -70,6 +70,28 @@ Prompts:
 - Cases where the system overfits to one preference  
 - Ways the scoring might unintentionally favor some users  
 
+
+User Type	Bias Impact	Result
+- Niche Genre Users: Genre mismatch = 0.0	Stuck in narrow bubble; can't discover adjacentgenres
+
+- Extreme Energy Users: Hard cliff at 0.5 distance	Very few good recommendations
+
+- Cross-Genre Fans	Genre dominates (35%)	Can't explore outside main genre
+
+- Mood-Flexible Users:	Mood has only 3 levels	Fine-grained mood preferences ignored
+
+- Acoustic Users: Binary preference only	Can't express nuanced acoustic tolerance
+
+- Minimalist Mike: Missing fields default to "anti-preference"	Penalized by defaults, not preferences
+
+
+
+Recommended Fixes:
+Make genre matching continuous (0-1 scale) instead of discrete
+Soften the energy cliff - use smooth decay instead of hard cutoff at 0.5
+Allow acoustic preference to be continuous (0-1) instead of boolean
+Expand mood similarity graph or use cosine similarity
+Consider lowering genre weight or making other weights adaptive
 ---
 
 ## 7. Evaluation  
