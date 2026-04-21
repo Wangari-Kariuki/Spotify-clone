@@ -9,7 +9,41 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 import streamlit as st
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import os #allows us to retrieve values for enironment variables
+CLIENT_ID = os.environ.get('CLIEN_ID')
+CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
+REDIRECT_URL = 'http://localhost:5000'
+
 from .recommender import load_songs, recommend_songs
+
+
+sp = spotipy.Spotify( 
+    #initiaize a spotify class
+    auth_manager = SpotifyOAuth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        redirect_uri=REDIRECT_URL,
+        scope = 'user-top-read' 
+    )
+
+)
+
+st.set_page_config(page_title='SpotiPan recomender', page_icon=None)
+st.title('Recommendation system clone')
+st.write('Get suggestions that suite your preferences')
+
+top_tracks = sp.current_user_top_tracks(limit=10, time_range='short_term')
+track_ids =  [track['id'] for track in top_tracks['items']]
+audio_features = sp.audio_features(track_ids)
+
+
+
+
+
+
+
 
 
 def main() -> None:
