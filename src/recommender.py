@@ -256,3 +256,87 @@ def _explain_recommendation(user_prefs: Dict, song: Dict, score: float) -> str:
     
     explanation = f"This {song['genre']} song has {song['mood']} vibes with {energy_desc} energy. Matches: {matches_str}. Score: {score:.2f}"
     return explanation
+
+
+def convert_spotify_to_songs(top_tracks: List[Dict], audio_features: List[Dict]) -> List[Dict]:
+    """
+    Convert Spotify API data (top tracks + audio features) into our song format.
+    
+    Args:
+        top_tracks: Spotify API response from current_user_top_tracks()
+        audio_features: Spotify API response from audio_features()
+    
+    Returns:
+        List of songs in our expected format
+    """
+    songs = []
+    
+    for track, features in zip(top_tracks['items'], audio_features):
+        if features is None:  # Skip if features couldn't be retrieved
+            continue
+        
+        # Infer mood and genre from audio features
+        mood = _infer_mood(features)
+        genre = _infer_genre(features)
+        
+        song = {
+            'id': len(songs),  # Create a simple ID
+            'title': track['name'],
+            'artist': ', '.join([artist['name'] for artist in track['artists']]),
+            'genre': genre,
+            'mood': mood,
+            'energy': features.get('energy', 0.5),
+            'tempo_bpm': features.get('tempo', 120),
+            'valence': features.get('valence', 0.5),
+            'danceability': features.get('danceability', 0.5),
+            'acousticness': features.get('acousticness', 0.5),
+        }
+        songs.append(song)
+    
+    return songs
+
+
+def _infer_mood(features: Dict) -> str:
+    """
+    Infer mood from Spotify audio features.
+    Uses energy and valence to determine mood.
+    """
+    energy = features.get('energy', 0.5)
+    valence = features.get('valence', 0.5)
+    acousticness = features.get('acousticness', 0.5)
+    
+    if energy > 0.7 and valence > 0.6:
+        return 'happy'
+    elif energy > 0.7:
+        return 'energetic'
+    elif energy < 0.4 and acousticness > 0.6:
+        return 'chill'
+    elif energy < 0.4:
+        return 'relaxed'
+    elif valence < 0.3:
+        return 'sad'
+    else:
+        return 'focused'
+
+
+def _infer_genre(features: Dict) -> str:
+    """
+    Infer genre from Spotify audio features.
+    Uses danceability, acousticness, and energy.
+    """
+    danceability = features.get('danceability', 0.5)
+    acousticness = features.get('acousticness', 0.5)
+    energy = features.get('energy', 0.5)
+    
+    if acousticness > 0.6:
+        return 'folk'
+    elif danceability > 0.7 and energy > 0.7:
+        return 'pop'
+    elif energy > 0.8:
+        return 'rock'
+    elif danceability > 0.7:
+        return 'disco'
+    elif energy < 0.4 and acousticness < 0.3:
+        return 'lofi'
+    else:
+        return 'indie pop'
