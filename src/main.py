@@ -1,7 +1,7 @@
 
 from .recommender import load_songs, recommend_songs
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    songs = load_songs("data/songs_with_audio_feature.csv") 
 
     # User profiles - Standard users
     users = {

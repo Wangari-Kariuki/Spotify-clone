@@ -51,25 +51,65 @@ class Recommender:
 
 def load_songs(csv_path: str) -> List[Dict]:
     """
-    Loads songs from a CSV file.
+    Loads songs from a CSV file with audio features.
+    Supports both old format (with genre/mood) and new format (raw audio features).
+    Automatically infers genre and mood from audio features if not present.
+    
     Required by src/main.py
     """
     songs = []
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # Convert numeric fields to float
+            # Handle new format: songs_with_audio_feature.csv
+            # Map column names from Spotify API format to our format
+            if 'track_id' in row:
+                song_id = row['track_id']
+                title = row['track_name']
+                artist = row['artist_names']
+            else:
+                # Handle old format: songs.csv
+                song_id = row['id']
+                title = row['title']
+                artist = row['artist']
+            
+            # Parse audio features
+            energy = float(row['energy'])
+            valence = float(row['valence'])
+            danceability = float(row['danceability'])
+            acousticness = float(row['acousticness'])
+            tempo = float(row.get('tempo', row.get('tempo_bpm', 120)))
+            
+            # Infer genre and mood from audio features, or use existing values
+            audio_features = {
+                'energy': energy,
+                'valence': valence,
+                'danceability': danceability,
+                'acousticness': acousticness,
+                'tempo': tempo
+            }
+            
+            if 'genre' in row and row['genre']:
+                genre = row['genre']
+            else:
+                genre = _infer_genre(audio_features)
+            
+            if 'mood' in row and row['mood']:
+                mood = row['mood']
+            else:
+                mood = _infer_mood(audio_features)
+            
             song = {
-                'id': int(row['id']),
-                'title': row['title'],
-                'artist': row['artist'],
-                'genre': row['genre'],
-                'mood': row['mood'],
-                'energy': float(row['energy']),
-                'tempo_bpm': float(row['tempo_bpm']),
-                'valence': float(row['valence']),
-                'danceability': float(row['danceability']),
-                'acousticness': float(row['acousticness']),
+                'id': song_id,
+                'title': title,
+                'artist': artist,
+                'genre': genre,
+                'mood': mood,
+                'energy': energy,
+                'tempo_bpm': tempo,
+                'valence': valence,
+                'danceability': danceability,
+                'acousticness': acousticness,
             }
             songs.append(song)
     

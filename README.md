@@ -9,87 +9,115 @@ This music recommender system provides personalized song recommendations based o
 - **Weighted scoring algorithm**: Combines genre (35%), mood (25%), energy (25%), and acoustic (15%) preferences
 - **Robust preference handling**: Gracefully handles missing or incomplete user preferences
 - **Edge case testing**: Includes adversarial user profiles to validate scoring logic reliability
+- **Interactive web interface**: Streamlit app for real-time recommendations
+- **Large song catalog**: 1000+ songs with full Spotify audio feature data
+- **Automatic feature inference**: Intelligently infers genre and mood from raw audio features
 
 The system evaluates songs against user preferences and returns ranked recommendations with scoring explanations.
 
 ---
 
-## How The System Works
-According to cht these sytems user collaborative filtering(find similar users and recomend what they liked)  combined with content based filtering(recomending songs absed on what you've liked )
-Audio features considered:Tempo, energy, valence , acousticness, dancabilty etc, meta data features, artists, genere release date popularity etc
-machinelearning techniques used: Matrix factoriation, neural networks(fot turing complex nonlinear relationships), embeddings, recurrent neural networks (capture sequential patterns )
+## Project Structure
 
-Explain your design in plain language.
+```
+src/
+├── app.py                 # 🎨 Streamlit web app (main interactive interface)
+├── main.py               # 🔧 Command-line demo with 12 predefined users
+├── recommender.py        # 🧠 Core recommendation engine
+└── spotipan.py          # (Legacy Spotify OAuth integration)
 
-Some prompts to answer:
+data/
+├── songs_with_audio_feature.csv    # 📊 1000+ songs with Spotify audio features
+└── songs.csv                        # 📝 Original 10-song dataset (legacy)
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+tests/
+└── test_recommender.py   # ✅ Test suite for the recommender
 
-You can include a simple diagram or bullet list if helpful.
+requirements.txt          # 📦 Python dependencies
+README.md                # 📖 This file
+model_card.md            # 🏷️ Model documentation and reflection
+```
+
+### Key Files
+
+- **`src/app.py`** - Interactive Streamlit web application for real-time recommendations
+- **`src/recommender.py`** - Core recommendation engine with scoring and matching logic
+- **`data/songs_with_audio_feature.csv`** - Song dataset from Spotify (1000+ songs with full audio features)
 
 ---
 
-I think musicl preference is defined by genre and mood. If I like certain gnre I would prefer to listen to it more and if I am in a certain mood I would prefer to listen to music  that suites that. 
+## How The System Works
 
-copilot suggested that the most useful features to create a recommendationsytesm off of are Genre, mood, energy danceability and accousticness.
+### Song Features
 
-Mapping the logic
-(a) if dancebility is  > 0.6 = high energy song
-(b) if danceability is <  0.6  low energy song
+Each song in the system includes:
+- **track_id** - Unique Spotify identifier
+- **title** - Song name
+- **artist** - Artist name(s)
+- **genre** - Music genre (inferred from audio features)
+- **mood** - Emotional mood (inferred from audio features)
+- **energy** - Spotify energy (0.0-1.0)
+- **valence** - Musical positiveness (0.0-1.0)
+- **danceability** - How danceable (0.0-1.0)
+- **acousticness** - Acoustic qualities (0.0-1.0)
+- **tempo_bpm** - Tempo in beats per minute
 
+### User Profile
 
-copilot:
-(a) take songs numeric features and calculate their score as : 
-method 1: score = 1 - (|song_value - user_preference| / max_range)
-method 2: score = exp(-(distance²) / (2 × variance))
-(b)combines scores for  multiple features: 
-total_score = w₁ × score_energy + w₂ × score_danceability + w₃ × score_acousticness +...
+User preferences are represented as:
+- **favorite_genre** - Preferred music genre
+- **favorite_mood** - Preferred emotional mood
+- **target_energy** - Desired energy level (0.0-1.0)
+- **likes_acoustic** - Preference for acoustic songs (boolean)
 
+### Recommendation Algorithm
 
+The system uses **content-based filtering** with a weighted scoring formula:
 
-Algorithm recipe:
-Step1:Scoring rule - score the songs against the user
-input: one song + user profile
-output: score between 0.0 and 1.0(higher = better match)
-Scoring formula: FINAL_SCORE = (0.35 × genre_match) + (0.25 × mood_match) + (0.25 × energy_match) + (0.15 × acoustic_match)
+**FINAL_SCORE = (0.35 × genre_match) + (0.25 × mood_match) + (0.25 × energy_match) + (0.15 × acoustic_match)**
 
-Genre Match (35% weight)
-If song.genre == user.favorite_genre → score = 1.0
-If song.genre is similar style (pop ≈ indie-pop) → score = 0.7
-Otherwise → score = 0.0
-Mood Match (25% weight)
-If song.mood == user.favorite_mood → score = 1.0
-If song.mood is adjacent (happy ≈ energetic) → score = 0.6
-Otherwise → score = 0.0
-Energy Match (25% weight)
+#### Scoring Components:
 
-Step2 : Ranking rule
-input: all songs with their scores
-output: Top-k songs sorted by quality
+**Genre Match (35% weight)**
+- Exact match: 1.0
+- Similar styles (e.g., pop ≈ indie-pop): 0.7
+- Otherwise: 0.0
 
-![Recommendation result](image.png)
+**Mood Match (25% weight)**
+- Exact match: 1.0
+- Adjacent moods (e.g., happy ≈ energetic): 0.6
+- Otherwise: 0.0
 
+**Energy Match (25% weight)**
+- Distance ≤ 0.1: 1.0
+- Distance ≤ 0.3: 0.7
+- Distance ≤ 0.5: 0.4
+- Otherwise: 0.0
 
-Recomendation logic: 
-Humans decide based on music theory and recommendation intuition.
+**Acoustic Match (15% weight)**
+- User likes acoustic + song acousticness ≥ 0.6: 1.0
+- User dislikes acoustic + song acousticness ≤ 0.4: 1.0
+- Partial matches: 0.6 or 0.2
 
-Rationale:
+#### Feature Inference
 
-Genre (35%): Most important—defines music type entirely
-Mood (25%): Second most—emotional match is key experience
-Energy (25%): Tightly tied to mood; sets activation level
-Acoustic (10%): Affects tone but less critical
-Valence (5%): Redundant with mood; lowest priority
-Pros: Intuitive, requires
+When loading songs without explicit genre/mood, the system infers them from audio features:
 
+**Mood Inference:**
+- High energy (>0.7) + high valence (>0.6) → Happy
+- High energy (>0.7) → Energetic
+- Low energy (<0.4) + high acousticness (>0.6) → Chill
+- Low energy (<0.4) → Relaxed
+- Low valence (<0.3) → Sad
+- Default → Focused
 
-
-Note on biases:
-The algorithm will prioritize genre and mood ignoring features such as acoustic ness and danceability
+**Genre Inference:**
+- High acousticness (>0.6) → Folk
+- High danceability (>0.7) + high energy (>0.7) → Pop
+- Very high energy (>0.8) → Rock
+- High danceability (>0.7) → Disco
+- Low energy (<0.4) + low acousticness (<0.3) → LoFi
+- Default → Indie Pop
 
 ---
 
@@ -118,37 +146,85 @@ To validate the scoring algorithm's robustness, the system includes **8 adversar
 1. Create a virtual environment (optional but recommended):
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
+   python -m venv myenv
+   source myenv/bin/activate      # Mac or Linux
+   myenv\Scripts\activate         # Windows
+   ```
 
-2. Install dependencies
+2. Install dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-3. Run the app:
+3. Run the interactive Streamlit app:
+
+   ```bash
+   streamlit run src/app.py
+   ```
+
+   The app opens at `http://localhost:8501` and provides an interactive UI to:
+   - Browse available songs
+   - Adjust your music preferences (genre, mood, energy, acoustic preference)
+   - Get personalized song recommendations with match scores and explanations
+   - View recommendation statistics
+
+### Alternative: Run Command-Line Demo
+
+To run the original command-line demo with 12 predefined users:
 
 ```bash
 python -m src.main
 ```
 
-This will generate recommendations for 12 users (including 4 standard profiles and 8 edge case profiles). Each user's recommendations are displayed with:
+This generates recommendations for 4 standard profiles and 8 edge case profiles, displaying:
 - User preferences summary
-- Top 5 recommended songs
-- Match scores (0.0-1.0)
-- Explanation for each recommendation
+- Top 5 recommended songs per user
+- Match scores (0.0-1.0) for each song
+- Detailed explanations for each recommendation
 
-### Running Tests
+---
 
-Run the starter tests with:
+## Recent Updates
 
-```bash
-pytest
-```
+### System Changes
 
-You can add more tests in `tests/test_recommender.py`.
+**Data Source Upgrade:**
+- Migrated from `data/songs.csv` (10 songs) to `data/songs_with_audio_feature.csv` (1000+ songs)
+- New dataset includes raw Spotify audio features: energy, valence, danceability, acousticness, tempo, and more
+- The `load_songs()` function now automatically infers **genre** and **mood** from audio features using intelligent heuristics
+
+**Audio Feature Inference Logic:**
+- **Mood** inference from energy + valence:
+  - High energy + high valence → Happy
+  - High energy → Energetic
+  - Low energy + high acousticness → Chill
+  - Low energy → Relaxed
+  - Low valence → Sad
+  - Default → Focused
+
+- **Genre** inference from danceability + acousticness + energy:
+  - High acousticness → Folk
+  - High danceability + high energy → Pop
+  - Very high energy → Rock
+  - High danceability → Disco
+  - Low energy + low acousticness → LoFi
+  - Default → Indie Pop
+
+**Interactive Web App:**
+- Replaced command-line interface with **Streamlit-based web application** (`src/app.py`)
+- Features include:
+  - **Sidebar controls** for user preference input (genre, mood, energy slider, acoustic checkbox)
+  - **Song browser** showing all 1000+ available songs
+  - **Interactive recommendation display** with match scores as progress bars
+  - **Recommendation statistics** (average match score, total recommendations)
+  - **Adjustable recommendation count** (1-20 songs)
+  - **Real-time matching** based on user preference changes
+
+**Backward Compatibility:**
+- The original `src/main.py` command-line demo still works
+- `load_songs()` handles both old and new CSV formats seamlessly
+- Existing scoring and recommendation logic unchanged
 
 ---
 
