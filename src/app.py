@@ -9,7 +9,7 @@ st.title('🎵 Music Recommender System')
 @st.cache_data
 def fetch_data():
     """Load songs from CSV file."""
-    return load_songs("data/songs_with_audio_feature.csv")
+    return load_songs("data/songs_with_audio_feature_cleaned.csv")
 
 songs = fetch_data()
 st.sidebar.success(f"✅ Loaded {len(songs)} songs")

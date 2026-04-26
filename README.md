@@ -47,7 +47,21 @@ model_card.md            # 🏷️ Model documentation and reflection
 ---
 
 ## How The System Works
+Music recommender --> Evaluation agent --> Simulated users --> Metrics --> Weakness analysis
 
+## How the evaluation agent works:
+Environement: Recommendtion sytem
+Goal: Measure recommendation quality and robustness 
+
+Actions: Submit user preferences, change  preferences, gie feedback
+
+Percepts: returned reccomendations, scores, rankings
+
+The evaluation agent has five modules : User persona generator - creates synthetic users like high energy lofi listener,sad mood  lofi listener, genre flexibe explorer
+*Action planner*: Choose what preference query to send
+*System Interface*: calls your recommender function/API
+*Judge/Scoring module* : evaluates whether returned songs align with expectted preferences
+*Memory + reporter*: Stores results across many tests and summarizes failure cases 
 ### Song Features
 
 Each song in the system includes:
